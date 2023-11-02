@@ -5,6 +5,7 @@ mod router;
 use std::{env, net::SocketAddr};
 
 use axum::{http::StatusCode, routing::get, Json, Router};
+use chrono::{DateTime, TimeZone, Utc};
 use dotenvy::dotenv;
 use lemonsqueezy::LemonSqueezy;
 use serde::Serialize;
@@ -72,4 +73,11 @@ where
     E: std::error::Error,
 {
     (StatusCode::INTERNAL_SERVER_ERROR, err.to_string())
+}
+
+fn get_tomorrow_iso8601() -> String {
+    let tomorrow = Utc::now()
+        .checked_add_signed(chrono::Duration::days(1))
+        .expect("Valid date");
+    tomorrow.format("%Y-%m-%dT%H:%M:%S%.3fZ").to_string()
 }
