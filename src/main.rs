@@ -1,6 +1,7 @@
 mod db_model;
 mod lemon_fn;
 mod router;
+mod utils;
 
 use std::{env, net::SocketAddr};
 
@@ -11,7 +12,7 @@ use lemonsqueezy::LemonSqueezy;
 use serde::Serialize;
 use sqlx::{postgres::PgPoolOptions, Pool, Postgres};
 
-use crate::router::get_all;
+use crate::router::{checkout_url, get_all};
 
 type PoolPg = Pool<Postgres>;
 
@@ -32,7 +33,9 @@ async fn main() {
         .await
         .expect("Failed to create a pool postgress");
 
-    let lemonsqueezy = lemonsqueezy::LemonSqueezy::new(std::env::var("API_KEY").unwrap());
+    let lemon_api = env::var("LEMON_API").expect("LEMON_API not present");
+
+    let lemonsqueezy = lemonsqueezy::LemonSqueezy::new(lemon_api);
 
     let app_state = AppState {
         pool,
@@ -42,6 +45,7 @@ async fn main() {
     let app = Router::new()
         .route("/", get(home))
         .route("/get_all", get(get_all))
+        .route("/checkout", get(checkout_url))
         .with_state(app_state);
 
     println!("Hello, world!");

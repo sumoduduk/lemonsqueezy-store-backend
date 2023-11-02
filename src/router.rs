@@ -2,7 +2,9 @@ use axum::{extract::State, http::StatusCode, Json};
 
 use crate::{
     db_model::{DataDB, Operation},
-    internal_error, AppState, PoolPg,
+    internal_error,
+    lemon_fn::create_checkout,
+    AppState,
 };
 
 pub async fn get_all(
@@ -24,6 +26,15 @@ pub async fn get_all(
     }
 }
 
-pub async fn checkout_url(State(pool): State<PoolPg>) {
+pub async fn checkout_url(State(state): State<AppState>) -> Result<String, (StatusCode, String)> {
     //code
+    let checkout_res = create_checkout(state.lemon, &state.pool).await;
+
+    match checkout_res {
+        Ok(res) => match serde_json::to_string_pretty(&res) {
+            Ok(pretty) => Ok(pretty),
+            Err(_) => Err((StatusCode::NOT_FOUND, "Shit happen".to_string())),
+        },
+        Err(_) => Err((StatusCode::NOT_FOUND, "Shit happen".to_string())),
+    }
 }

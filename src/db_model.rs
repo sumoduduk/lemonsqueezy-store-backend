@@ -7,7 +7,7 @@ use crate::PoolPg;
 pub struct DataDB {
     key_id: String,
     title: String,
-    thumb_image: String,
+    pub thumb_image: String,
 }
 
 pub enum Operation {
@@ -29,7 +29,7 @@ impl Operation {
         let data_response: Vec<DataDB> = sqlx::query_as::<_, DataDB>(
             "
             SELECT key_id, thumb_image, title FROM bride_photo_thumbnails 
-            LIMIT 10
+            LIMIT 5
             ",
         )
         .fetch_all(pool)

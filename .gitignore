@@ -3,4 +3,5 @@
 .env
 **/*.hurl
 contoh.json
+/json_response
 
