@@ -837,6 +837,7 @@ dependencies = [
 [[package]]
 name = "lemonsqueezy"
 version = "0.1.1"
+source = "git+https://github.com/sumoduduk/lemonsqueezy.rs.git?branch=fix_checkout_data#f8636a0a9bce605e81e3254bc886c907732c5b0f"
 dependencies = [
  "anyhow",
  "reqwest",

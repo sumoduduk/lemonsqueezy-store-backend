@@ -11,7 +11,7 @@ chrono = { version = "0.4.31", features = ["serde"] }
 derive = "1.0.0"
 dotenvy = "0.15.7"
 eyre = "0.6.8"
-lemonsqueezy = { path = '/Users/calista/Documents/rust_project/library/lemonsqueezy.rs'  }
+lemonsqueezy = { git = 'https://github.com/sumoduduk/lemonsqueezy.rs.git', branch = 'fix_checkout_data'  }
 serde = "1.0.190"
 serde_json = "1.0.108"
 sqlx = { version = "0.7.2", features = ["postgres", "chrono", "runtime-tokio-native-tls"] }
