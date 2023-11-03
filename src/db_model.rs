@@ -5,7 +5,7 @@ use crate::PoolPg;
 
 #[derive(Debug, FromRow, Serialize)]
 pub struct DataDB {
-    key_id: String,
+    pub key_id: String,
     title: String,
     pub thumb_image: String,
 }

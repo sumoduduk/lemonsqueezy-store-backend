@@ -1,3 +1,5 @@
+pub mod vec_to_json;
+
 use crate::db_model::DataDB;
 
 pub fn extract_image(data: &[DataDB]) -> Vec<String> {

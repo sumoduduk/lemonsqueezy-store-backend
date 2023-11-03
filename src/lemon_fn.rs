@@ -1,11 +1,10 @@
-mod checkout_struct;
-
 use lemonsqueezy::types::{checkout::*, Data};
 use lemonsqueezy::utils::Response;
 use lemonsqueezy::{checkout::Checkout, LemonSqueezy};
+use serde_json::json;
 
 use crate::db_model::Operation;
-use crate::utils::extract_image;
+use crate::utils::{extract_image, vec_to_json};
 use crate::{one_hour_from_now, PoolPg};
 
 pub async fn create_checkout(
@@ -14,6 +13,7 @@ pub async fn create_checkout(
     pool: &PoolPg,
 ) -> eyre::Result<Response<CheckoutResponse>> {
     //code
+
     let build_checkout = Checkout::build(lemon);
 
     let time_expires = one_hour_from_now();
@@ -27,7 +27,7 @@ pub async fn create_checkout(
     let total_prices = 400 * len;
 
     let options_product = CreateCheckoutProductOptions {
-        name: Some("Bridebook Photo".to_string()),
+        name: Some("Test Costum Webhook Photo".to_string()),
         description: Some("Diversity Bride Photo by Bridebook.com".to_string()),
         media: Some(arr_img),
         redirect_url: Some("https://lemonsqueezy.com".to_string()),
@@ -43,7 +43,10 @@ pub async fn create_checkout(
         billing_address: None,
         tax_number: None,
         discount_code: None,
-        custom: None,
+        custom: Some(json!({
+
+        "user_id": "123"
+              })),
         variant_quantities: None,
     };
 
@@ -79,9 +82,13 @@ pub async fn create_checkout(
 
     println!("data : {}", pretty_json);
 
-    let checkout = build_checkout.create(checkout_master).await?;
+    let checkout = build_checkout.create(checkout_master).await;
 
-    dbg!(&checkout);
-
-    Ok(checkout)
+    match checkout {
+        Ok(data) => Ok(data),
+        Err(error) => {
+            dbg!(&error);
+            Err(error.into())
+        }
+    }
 }
