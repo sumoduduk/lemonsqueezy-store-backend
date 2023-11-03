@@ -12,7 +12,7 @@ pub struct DataDB {
 
 pub enum Operation {
     GetData,
-    // CreateHistory,
+    GetDataById(Vec<String>), // CreateHistory,
 }
 
 impl Operation {
@@ -20,6 +20,10 @@ impl Operation {
         match self {
             Self::GetData => {
                 let return_data = Self::fetch_all(pool).await?;
+                Ok(return_data)
+            }
+            Self::GetDataById(arr) => {
+                let return_data = Self::fetch_by_id(arr, pool).await?;
                 Ok(return_data)
             }
         }
@@ -32,6 +36,20 @@ impl Operation {
             LIMIT 5
             ",
         )
+        .fetch_all(pool)
+        .await?;
+
+        Ok(data_response)
+    }
+
+    async fn fetch_by_id(ids: &[String], pool: &PoolPg) -> Result<Vec<DataDB>, sqlx::Error> {
+        let data_response: Vec<DataDB> = sqlx::query_as::<_, DataDB>(
+            "
+            SELECT key_id, thumb_image, title FROM bride_photo_thumbnails 
+            WHERE key_id = ANY($1)
+            ",
+        )
+        .bind(ids)
         .fetch_all(pool)
         .await?;
 

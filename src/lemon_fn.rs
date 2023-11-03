@@ -6,20 +6,25 @@ use lemonsqueezy::{checkout::Checkout, LemonSqueezy};
 
 use crate::db_model::Operation;
 use crate::utils::extract_image;
-use crate::{get_tomorrow_iso8601, PoolPg};
+use crate::{one_hour_from_now, PoolPg};
 
 pub async fn create_checkout(
+    ids: &[String],
     lemon: LemonSqueezy,
     pool: &PoolPg,
 ) -> eyre::Result<Response<CheckoutResponse>> {
     //code
     let build_checkout = Checkout::build(lemon);
 
-    let time_expires = get_tomorrow_iso8601();
+    let time_expires = one_hour_from_now();
 
-    let res = Operation::GetData.execute(pool).await?;
+    let len = ids.len() as i64;
+
+    let res = Operation::GetDataById(ids.to_vec()).execute(pool).await?;
 
     let arr_img = extract_image(&res);
+
+    let total_prices = 400 * len;
 
     let options_product = CreateCheckoutProductOptions {
         name: Some("Bridebook Photo".to_string()),
@@ -60,7 +65,7 @@ pub async fn create_checkout(
     let checkout_master = CreateCheckout {
         r#type: "checkouts".to_string(),
         attributes: CreateCheckoutAttributes {
-            custom_price: Some(400),
+            custom_price: Some(total_prices),
             product_options: Some(options_product),
             checkout_data: Some(data_checkout),
             expires_at: Some(time_expires),

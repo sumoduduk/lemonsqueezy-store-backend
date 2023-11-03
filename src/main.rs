@@ -5,14 +5,18 @@ mod utils;
 
 use std::{env, net::SocketAddr};
 
-use axum::{http::StatusCode, routing::get, Json, Router};
-use chrono::{DateTime, TimeZone, Utc};
+use axum::{
+    http::StatusCode,
+    routing::{get, post},
+    Json, Router,
+};
+use chrono::Utc;
 use dotenvy::dotenv;
 use lemonsqueezy::LemonSqueezy;
 use serde::Serialize;
 use sqlx::{postgres::PgPoolOptions, Pool, Postgres};
 
-use crate::router::{checkout_url, get_all};
+use crate::router::{checkout_url, get_all, get_by_id};
 
 type PoolPg = Pool<Postgres>;
 
@@ -45,7 +49,8 @@ async fn main() {
     let app = Router::new()
         .route("/", get(home))
         .route("/get_all", get(get_all))
-        .route("/checkout", get(checkout_url))
+        .route("/checkout", post(checkout_url))
+        .route("/data_id", post(get_by_id))
         .with_state(app_state);
 
     println!("Hello, world!");
@@ -79,9 +84,9 @@ where
     (StatusCode::INTERNAL_SERVER_ERROR, err.to_string())
 }
 
-fn get_tomorrow_iso8601() -> String {
+fn one_hour_from_now() -> String {
     let tomorrow = Utc::now()
-        .checked_add_signed(chrono::Duration::days(1))
+        .checked_add_signed(chrono::Duration::minutes(60))
         .expect("Valid date");
     tomorrow.format("%Y-%m-%dT%H:%M:%S%.3fZ").to_string()
 }
