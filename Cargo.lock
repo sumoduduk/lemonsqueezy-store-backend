@@ -837,8 +837,6 @@ dependencies = [
 [[package]]
 name = "lemonsqueezy"
 version = "0.1.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d163152de8f3b8705fc7a2ee584ba2c4ca37020c4f1e03f2c548f2f51ebf2e70"
 dependencies = [
  "anyhow",
  "reqwest",

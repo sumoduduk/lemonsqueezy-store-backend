@@ -1,7 +1,6 @@
 use lemonsqueezy::types::{checkout::*, Data};
 use lemonsqueezy::utils::Response;
 use lemonsqueezy::{checkout::Checkout, LemonSqueezy};
-use serde_json::json;
 
 use crate::db_model::Operation;
 use crate::utils::{extract_image, vec_to_json};
@@ -24,6 +23,8 @@ pub async fn create_checkout(
 
     let arr_img = extract_image(&res);
 
+    let custom_data = vec_to_json::execute_to_json(&res);
+
     let total_prices = 400 * len;
 
     let options_product = CreateCheckoutProductOptions {
@@ -43,10 +44,7 @@ pub async fn create_checkout(
         billing_address: None,
         tax_number: None,
         discount_code: None,
-        custom: Some(json!({
-
-        "user_id": "123"
-              })),
+        custom: Some(custom_data),
         variant_quantities: None,
     };
 
