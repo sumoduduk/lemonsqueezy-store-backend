@@ -1,5 +1,8 @@
+mod webhook_router;
+
 use axum::{extract::State, http::StatusCode, Json};
 use serde::Deserialize;
+use serde_json::Value;
 
 use crate::{
     db_model::{DataDB, Operation},
@@ -7,6 +10,8 @@ use crate::{
     lemon_fn::create_checkout,
     AppState,
 };
+
+use self::webhook_router::WebhookPayload;
 
 #[derive(Debug, Deserialize)]
 pub struct CheckoutPayload {
@@ -71,4 +76,12 @@ pub async fn get_by_id(
             Err((StatusCode::NOT_FOUND, "Shit happen".to_string()))
         }
     }
+}
+
+pub async fn webhook_route(
+    State(state): State<AppState>,
+    Json(payload): Json<WebhookPayload>,
+) -> Result<(StatusCode, String), (StatusCode, String)> {
+    //code
+    Ok((StatusCode::OK, "OK".to_string()))
 }

@@ -1,3 +1,4 @@
+pub mod json_to_vec;
 pub mod vec_to_json;
 
 use crate::db_model::DataDB;
