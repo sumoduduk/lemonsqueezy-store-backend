@@ -16,7 +16,7 @@ use lemonsqueezy::LemonSqueezy;
 use serde::Serialize;
 use sqlx::{postgres::PgPoolOptions, Pool, Postgres};
 
-use crate::router::{checkout_url, get_all, get_by_id};
+use crate::router::{checkout_url, get_all, get_by_id, webhook_route};
 
 type PoolPg = Pool<Postgres>;
 
@@ -51,9 +51,8 @@ async fn main() {
         .route("/get_all", get(get_all))
         .route("/checkout", post(checkout_url))
         .route("/data_id", post(get_by_id))
+        .route("/webhook", post(webhook_route))
         .with_state(app_state);
-
-    println!("Hello, world!");
 
     let addr = SocketAddr::from(([127, 0, 0, 1], 8080));
     println!("Listening on {addr}");

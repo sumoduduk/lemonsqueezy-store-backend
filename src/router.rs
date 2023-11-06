@@ -1,17 +1,18 @@
 mod webhook_router;
 
 use axum::{extract::State, http::StatusCode, Json};
+use lemonsqueezy::{checkout::CheckoutResponse, utils::Response};
 use serde::Deserialize;
 use serde_json::Value;
 
 use crate::{
-    db_model::{DataDB, Operation},
+    db_model::{DataDB, Operation, OperationResult},
     internal_error,
     lemon_fn::create_checkout,
     AppState,
 };
 
-use self::webhook_router::WebhookPayload;
+use self::webhook_router::{insert_to_db, WebhookPayload};
 
 #[derive(Debug, Deserialize)]
 pub struct CheckoutPayload {
@@ -29,10 +30,15 @@ pub async fn get_all(
         .map_err(internal_error);
 
     match res {
-        Ok(response) => Ok(Json(response)),
+        Ok(response) => match response {
+            OperationResult::Fetched(data) => Ok(Json(data)),
+            OperationResult::Inserted => {
+                Err((StatusCode::NOT_FOUND, "Something went wrong".to_string()))
+            }
+        },
         Err(err) => {
             dbg!(err);
-            Err((StatusCode::NOT_FOUND, "Shit happen".to_string()))
+            Err((StatusCode::NOT_FOUND, "Something went wrong".to_string()))
         }
     }
 }
@@ -40,17 +46,15 @@ pub async fn get_all(
 pub async fn checkout_url(
     State(state): State<AppState>,
     Json(payload): Json<CheckoutPayload>,
-) -> Result<String, (StatusCode, String)> {
+) -> Result<Json<Response<CheckoutResponse>>, (StatusCode, String)> {
     let ids = payload.ids;
 
     let checkout_res = create_checkout(&ids, state.lemon, &state.pool).await;
 
     match checkout_res {
-        Ok(res) => match serde_json::to_string_pretty(&res) {
-            Ok(pretty) => Ok(pretty),
-            Err(_) => Err((StatusCode::NOT_FOUND, "Error parse to string".to_string())),
-        },
-        Err(_) => Err((StatusCode::NOT_FOUND, "Shit happen".to_string())),
+        Ok(res) => Ok(Json(res)),
+
+        Err(_) => Err((StatusCode::NOT_FOUND, "Something went wrong".to_string())),
     }
 }
 
@@ -67,13 +71,18 @@ pub async fn get_by_id(
         .map_err(internal_error);
 
     match res {
-        Ok(data) => match serde_json::to_string_pretty(&data) {
-            Ok(hasil) => Ok(hasil),
-            Err(_) => Err((StatusCode::NOT_FOUND, "error parse to pretty".to_string())),
+        Ok(data) => match data {
+            OperationResult::Fetched(result) => match serde_json::to_string_pretty(&result) {
+                Ok(hasil) => Ok(hasil),
+                Err(_) => Err((StatusCode::NOT_FOUND, "error parse to pretty".to_string())),
+            },
+            OperationResult::Inserted => {
+                Err((StatusCode::NOT_FOUND, "Something went wrong".to_string()))
+            }
         },
         Err(err) => {
             dbg!(err);
-            Err((StatusCode::NOT_FOUND, "Shit happen".to_string()))
+            Err((StatusCode::NOT_FOUND, "Something went wrong".to_string()))
         }
     }
 }
@@ -82,6 +91,9 @@ pub async fn webhook_route(
     State(state): State<AppState>,
     Json(payload): Json<WebhookPayload>,
 ) -> Result<(StatusCode, String), (StatusCode, String)> {
-    //code
+    let pool = state.pool;
+
+    let _ = insert_to_db(payload, &pool).await;
+
     Ok((StatusCode::OK, "OK".to_string()))
 }
