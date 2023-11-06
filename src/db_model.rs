@@ -90,21 +90,43 @@ impl<'a> Operation<'a> {
         pool: &Pool<Postgres>,
     ) -> Result<(), sqlx::Error> {
         let query_str = r#"
-                        INSERT INTO bridebook_payment_history (
-                        email, 
-                        id, 
+                    WITH inserted_data AS (
+                      INSERT INTO bridebook_payment_history (
+                        email,
+                        invoice_id,
                         key_id,
-                        name, 
-                        costumer_id,
-                        store_id, 
+                        name,
+                        customer_id,
+                        store_id,
                         currency,
                         paid,
                         created_at,
                         updated_at,
                         total_paid,
                         user_id
-                        )
-                        VALUES ($1, $2, unnest($3::text[]), $4, $5, $6, $7, $8, $9, $10, $11, (SELECT id FROM auth.users WHERE email = $1)) 
+                      )
+                      VALUES (
+                        $1,
+                        $2,
+                        unnest($3::text[]),
+                        $4,
+                        $5,
+                        $6,
+                        $7,
+                        $8,
+                        $9,
+                        $10,
+                        $11,
+                        (SELECT id FROM auth.users WHERE email = $1)
+                      )
+                      RETURNING key_id
+                    )
+                    UPDATE bride_photo_thumbnails
+                    SET paid = true
+                    WHERE key_id IN (
+                    SELECT key_id
+                    FROM inserted_data
+                    );
                         "#;
         let row_total = sqlx::query(query_str)
             .bind(history_data.email)
@@ -124,3 +146,4 @@ impl<'a> Operation<'a> {
         Ok(())
     }
 }
+

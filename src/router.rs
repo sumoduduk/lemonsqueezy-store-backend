@@ -1,9 +1,10 @@
+mod jwt_fn;
 mod webhook_router;
 
 use axum::{extract::State, http::StatusCode, Json};
 use lemonsqueezy::{checkout::CheckoutResponse, utils::Response};
 use serde::Deserialize;
-use serde_json::Value;
+use tokio::task;
 
 use crate::{
     db_model::{DataDB, Operation, OperationResult},
@@ -12,11 +13,15 @@ use crate::{
     AppState,
 };
 
-use self::webhook_router::{insert_to_db, WebhookPayload};
+use self::{
+    jwt_fn::decode_jwt,
+    webhook_router::{insert_to_db, WebhookPayload},
+};
 
 #[derive(Debug, Deserialize)]
 pub struct CheckoutPayload {
-    ids: Vec<String>, //email
+    ids: Vec<String>,
+    token: String,
 }
 
 pub async fn get_all(
@@ -49,12 +54,21 @@ pub async fn checkout_url(
 ) -> Result<Json<Response<CheckoutResponse>>, (StatusCode, String)> {
     let ids = payload.ids;
 
-    let checkout_res = create_checkout(&ids, state.lemon, &state.pool).await;
+    let email_res = decode_jwt(&payload.token);
+    match email_res {
+        Ok(email) => {
+            let checkout_res = create_checkout(&ids, state.lemon, &state.pool, email).await;
 
-    match checkout_res {
-        Ok(res) => Ok(Json(res)),
+            match checkout_res {
+                Ok(res) => Ok(Json(res)),
 
-        Err(_) => Err((StatusCode::NOT_FOUND, "Something went wrong".to_string())),
+                Err(_) => Err((StatusCode::NOT_FOUND, "Something went wrong".to_string())),
+            }
+        }
+        Err(err) => {
+            dbg!(err);
+            Err((StatusCode::UNAUTHORIZED, "Not Authorized".to_owned()))
+        }
     }
 }
 
@@ -92,8 +106,12 @@ pub async fn webhook_route(
     Json(payload): Json<WebhookPayload>,
 ) -> Result<(StatusCode, String), (StatusCode, String)> {
     let pool = state.pool;
+    dbg!(&payload);
 
-    let _ = insert_to_db(payload, &pool).await;
+    task::spawn(async move {
+        let _ = insert_to_db(payload, &pool).await;
+    });
 
     Ok((StatusCode::OK, "OK".to_string()))
 }
+

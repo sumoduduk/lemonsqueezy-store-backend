@@ -15,6 +15,7 @@ use dotenvy::dotenv;
 use lemonsqueezy::LemonSqueezy;
 use serde::Serialize;
 use sqlx::{postgres::PgPoolOptions, Pool, Postgres};
+use tower_http::cors::{Any, CorsLayer};
 
 use crate::router::{checkout_url, get_all, get_by_id, webhook_route};
 
@@ -29,6 +30,11 @@ pub struct AppState {
 #[tokio::main]
 async fn main() {
     dotenv().ok();
+
+    let cors = CorsLayer::new()
+        .allow_methods(Any)
+        .allow_headers(Any)
+        .allow_origin(Any);
 
     let database_uri = env::var("DATABASE_URL").expect("No database uri on environment");
     let pool: Pool<Postgres> = PgPoolOptions::new()
@@ -52,7 +58,8 @@ async fn main() {
         .route("/checkout", post(checkout_url))
         .route("/data_id", post(get_by_id))
         .route("/webhook", post(webhook_route))
-        .with_state(app_state);
+        .with_state(app_state)
+        .layer(cors);
 
     let addr = SocketAddr::from(([127, 0, 0, 1], 8080));
     println!("Listening on {addr}");
@@ -89,3 +96,4 @@ fn one_hour_from_now() -> String {
         .expect("Valid date");
     tomorrow.format("%Y-%m-%dT%H:%M:%S%.3fZ").to_string()
 }
+

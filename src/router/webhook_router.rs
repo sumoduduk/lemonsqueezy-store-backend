@@ -19,7 +19,7 @@ pub struct WebhookPayload {
 pub struct MetaObject {
     test_mode: Option<bool>,
     event_name: String,
-    costum_data: Option<Value>,
+    custom_data: Option<Value>,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -57,7 +57,7 @@ fn extract_payload(payload: WebhookPayload) -> eyre::Result<ExtractedWebhookData
         paid: payload.data.attributes.status.is_some_and(|x| x == "paid"),
         created_at: parse_utc_datetime(&payload.data.attributes.created_at)?,
         updated_at: parse_utc_datetime(&payload.data.attributes.updated_at)?,
-        costum_data: payload.meta.costum_data,
+        costum_data: payload.meta.custom_data,
         total_paid: payload.data.attributes.total,
     };
 
@@ -99,3 +99,4 @@ pub async fn insert_to_db(payload: WebhookPayload, pool: &PoolPg) {
         }
     }
 }
+

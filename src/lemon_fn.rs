@@ -12,6 +12,7 @@ pub async fn create_checkout(
     ids: &[String],
     lemon: LemonSqueezy,
     pool: &PoolPg,
+    email: String,
 ) -> eyre::Result<Response<CheckoutResponse>> {
     //code
 
@@ -43,7 +44,7 @@ pub async fn create_checkout(
             };
 
             let data_checkout = CreateCheckoutCheckoutData {
-                email: Some("shoemakeraiko@gmail.com".to_string()),
+                email: Some(email),
                 name: None,
                 billing_address: None,
                 tax_number: None,
@@ -97,3 +98,4 @@ pub async fn create_checkout(
         OperationResult::Inserted => Err(Report::msg("Something went wrong")),
     }
 }
+
