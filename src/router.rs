@@ -65,10 +65,7 @@ pub async fn checkout_url(
                 Err(_) => Err((StatusCode::NOT_FOUND, "Something went wrong".to_string())),
             }
         }
-        Err(err) => {
-            dbg!(err);
-            Err((StatusCode::UNAUTHORIZED, "Not Authorized".to_owned()))
-        }
+        Err(_) => Err((StatusCode::UNAUTHORIZED, "Not Authorized".to_owned())),
     }
 }
 

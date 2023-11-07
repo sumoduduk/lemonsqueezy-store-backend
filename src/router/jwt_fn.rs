@@ -30,11 +30,9 @@ pub fn decode_jwt(token: &str) -> eyre::Result<String> {
     let secret = DecodingKey::from_secret(secret.as_ref());
 
     let mut validation = Validation::new(Algorithm::HS256);
-    validation.validate_exp = false;
     validation.set_audience(&["authenticated"]);
 
     let res = decode::<Claims>(token, &secret, &validation)?;
-    dbg!(&res);
 
     let data = res.claims;
 
