@@ -56,8 +56,9 @@ pub async fn checkout_url(
 
     let email_res = decode_jwt(&payload.token);
     match email_res {
-        Ok(email) => {
-            let checkout_res = create_checkout(&ids, state.lemon, &state.pool, email).await;
+        Ok((email, user_id)) => {
+            let checkout_res =
+                create_checkout(&ids, state.lemon, &state.pool, email, user_id).await;
 
             match checkout_res {
                 Ok(res) => Ok(Json(res)),

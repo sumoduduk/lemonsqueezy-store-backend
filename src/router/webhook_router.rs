@@ -5,7 +5,7 @@ use serde_json::Value;
 
 use crate::{
     db_model::{Operation, PaymentHistory},
-    utils::{json_to_vec::json_to_vec, time_manipulation::parse_utc_datetime},
+    utils::{extract_custom_data, time_manipulation::parse_utc_datetime},
     PoolPg,
 };
 
@@ -64,14 +64,14 @@ fn extract_payload(payload: WebhookPayload) -> eyre::Result<ExtractedWebhookData
     Ok(data_extract)
 }
 
-pub async fn insert_to_db(payload: WebhookPayload, pool: &PoolPg) {
+pub async fn insert_to_db(payload: WebhookPayload, pool: &PoolPg) -> eyre::Result<()> {
     let extracted = extract_payload(payload);
 
     if let Ok(extracted_data) = extracted {
         dbg!(&extracted_data);
         if !extracted_data.test_mode && extracted_data.paid {
             if let Some(data_custom) = &extracted_data.costum_data {
-                let arr_custom = json_to_vec::<String>(data_custom.clone());
+                let (user_id, arr_custom) = extract_custom_data(data_custom.clone())?;
                 let history = PaymentHistory {
                     id: &extracted_data.id,
                     customer_id: extracted_data.costumer_id,
@@ -84,6 +84,7 @@ pub async fn insert_to_db(payload: WebhookPayload, pool: &PoolPg) {
                     total_paid: extracted_data.total_paid,
                     email: extracted_data.user_email.as_deref(),
                     key_id: arr_custom,
+                    user_id: &user_id,
                 };
 
                 let res = Operation::InsertPaymentHisory(history).execute(pool).await;
@@ -98,5 +99,6 @@ pub async fn insert_to_db(payload: WebhookPayload, pool: &PoolPg) {
             }
         }
     }
+    Ok(())
 }
 

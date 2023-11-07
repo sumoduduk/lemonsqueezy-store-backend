@@ -3,7 +3,7 @@ use lemonsqueezy::utils::Response;
 use lemonsqueezy::{checkout::Checkout, LemonSqueezy};
 
 use crate::db_model::{Operation, OperationResult};
-use crate::utils::{extract_image, vec_to_json};
+use crate::utils::{extract_image, make_custom_data};
 use crate::{one_hour_from_now, PoolPg};
 
 use eyre::Report;
@@ -13,6 +13,7 @@ pub async fn create_checkout(
     lemon: LemonSqueezy,
     pool: &PoolPg,
     email: String,
+    user_id: String,
 ) -> eyre::Result<Response<CheckoutResponse>> {
     //code
 
@@ -28,7 +29,7 @@ pub async fn create_checkout(
         OperationResult::Fetched(arr_data) => {
             let arr_img = extract_image(&arr_data);
 
-            let custom_data = vec_to_json::execute_to_json(&arr_data);
+            let custom_data = make_custom_data(ids, &user_id)?;
 
             let total_prices = 400 * len;
 

@@ -24,6 +24,7 @@ pub struct PaymentHistory<'a> {
     pub total_paid: Option<i64>,
     pub email: Option<&'a str>,
     pub key_id: Vec<String>,
+    pub user_id: &'a str,
 }
 
 pub enum Operation<'a> {
@@ -117,7 +118,7 @@ impl<'a> Operation<'a> {
                         $9,
                         $10,
                         $11,
-                        (SELECT id FROM auth.users WHERE email = $1)
+                        $12
                       )
                       RETURNING key_id
                     )
@@ -140,6 +141,7 @@ impl<'a> Operation<'a> {
             .bind(history_data.created_at)
             .bind(history_data.updated_at)
             .bind(history_data.total_paid)
+            .bind(history_data.user_id)
             .execute(pool)
             .await?;
         dbg!(row_total);

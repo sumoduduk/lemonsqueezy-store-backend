@@ -1,5 +1,6 @@
 mod db_model;
 mod lemon_fn;
+mod middleware;
 mod router;
 mod utils;
 
