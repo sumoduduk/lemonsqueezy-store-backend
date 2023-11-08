@@ -29,7 +29,7 @@ pub fn decode_jwt(token: &str) -> eyre::Result<(String, String)> {
 
     let mut validation = Validation::new(Algorithm::HS256);
     //for test
-    validation.validate_exp = false;
+    // validation.validate_exp = false;
     validation.set_audience(&["authenticated"]);
 
     let res = decode::<Claims>(token, &secret, &validation)?;
@@ -38,4 +38,3 @@ pub fn decode_jwt(token: &str) -> eyre::Result<(String, String)> {
 
     Ok((data.email, data.sub))
 }
-

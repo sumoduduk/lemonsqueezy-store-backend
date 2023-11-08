@@ -34,9 +34,12 @@ pub async fn create_checkout(
             let total_prices = 400 * len;
 
             let options_product = CreateCheckoutProductOptions {
-                name: Some("Test Costum Webhook Photo".to_string()),
+                //need fix dynamic name
+                name: Some("Test for webhook x-signature".to_string()),
+                //need fix dynamic description
                 description: Some("Diversity Bride Photo by Bridebook.com".to_string()),
                 media: Some(arr_img),
+                //need fix dynamic redirect url
                 redirect_url: Some("https://lemonsqueezy.com".to_string()),
                 receipt_button_text: None,
                 receipt_link_url: None,
@@ -99,4 +102,3 @@ pub async fn create_checkout(
         OperationResult::Inserted => Err(Report::msg("Something went wrong")),
     }
 }
-

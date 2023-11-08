@@ -1,13 +1,15 @@
 mod db_model;
 mod lemon_fn;
-mod middleware;
+mod middleware_fn;
 mod router;
 mod utils;
 
 use std::{env, net::SocketAddr};
 
 use axum::{
+    body,
     http::StatusCode,
+    middleware,
     routing::{get, post},
     Json, Router,
 };
@@ -16,9 +18,16 @@ use dotenvy::dotenv;
 use lemonsqueezy::LemonSqueezy;
 use serde::Serialize;
 use sqlx::{postgres::PgPoolOptions, Pool, Postgres};
-use tower_http::cors::{Any, CorsLayer};
+use tower::ServiceBuilder;
+use tower_http::{
+    cors::{Any, CorsLayer},
+    ServiceBuilderExt,
+};
 
-use crate::router::{checkout_url, get_all, get_by_id, webhook_route};
+use crate::{
+    middleware_fn::get_sig,
+    router::{checkout_url, get_all, get_by_id, webhook_route},
+};
 
 type PoolPg = Pool<Postgres>;
 
@@ -54,11 +63,16 @@ async fn main() {
     };
 
     let app = Router::new()
+        .route("/webhook", post(webhook_route))
+        .layer(
+            ServiceBuilder::new()
+                .map_request_body(body::boxed)
+                .layer(middleware::from_fn(get_sig)),
+        )
         .route("/", get(home))
         .route("/get_all", get(get_all))
         .route("/checkout", post(checkout_url))
         .route("/data_id", post(get_by_id))
-        .route("/webhook", post(webhook_route))
         .with_state(app_state)
         .layer(cors);
 
@@ -97,4 +111,3 @@ fn one_hour_from_now() -> String {
         .expect("Valid date");
     tomorrow.format("%Y-%m-%dT%H:%M:%S%.3fZ").to_string()
 }
-

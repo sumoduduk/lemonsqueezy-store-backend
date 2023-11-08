@@ -52,7 +52,7 @@ impl<'a> Operation<'a> {
                 Ok(Fetched(return_data))
             }
             Self::InsertPaymentHisory(data) => {
-                let _row = Self::insert_history_payment(data, pool).await?;
+                Self::insert_history_payment(data, pool).await?;
                 Ok(Inserted)
             }
         }
@@ -148,4 +148,3 @@ impl<'a> Operation<'a> {
         Ok(())
     }
 }
-
