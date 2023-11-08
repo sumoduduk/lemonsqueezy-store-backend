@@ -8,6 +8,7 @@ use axum::{
 };
 
 use dotenvy::dotenv;
+use hex;
 use hmac::{Hmac, Mac};
 use sha2::Sha256;
 
@@ -34,17 +35,38 @@ pub async fn get_sig(req: Request<BoxBody>, next: Next<BoxBody>) -> Result<Respo
 
             mac.update(&bytes_clone[..]);
 
-            let sig = signature.as_bytes();
-            let result = mac.verify_slice(sig);
+            // let sig = signature.as_bytes();
+            // let result = mac.verify_slice(sig);
 
-            match result {
-                Ok(_) => {
-                    let new_req = Request::from_parts(parts, body::boxed(Full::from(bytes_body)));
-                    Ok(next.run(new_req).await)
-                }
-                Err(_) => Err((StatusCode::NOT_ACCEPTABLE).into_response()),
+            let result = mac.finalize().into_bytes();
+
+            let hex_res = hex::encode(result);
+
+            let sig_str = std::str::from_utf8(signature.as_bytes()).map_err(|err| {
+                (StatusCode::INTERNAL_SERVER_ERROR, err.to_string()).into_response()
+            })?;
+            if hex_res == sig_str {
+                println!("signature verified");
+                let new_req = Request::from_parts(parts, body::boxed(Full::from(bytes_body)));
+                Ok(next.run(new_req).await)
+            } else {
+                println!("wrong signature");
+                Err((StatusCode::NOT_ACCEPTABLE, "wrong signature").into_response())
             }
+
+            // match result {
+            //     Ok(_) => {
+            //         println!("signature verified");
+            //         let new_req = Request::from_parts(parts, body::boxed(Full::from(bytes_clone)));
+            //         Ok(next.run(new_req).await)
+            //     }
+            //     Err(err) => {
+            //         println!("wrong signature");
+            //         Err((StatusCode::NOT_ACCEPTABLE, err.to_string()).into_response())
+            //     }
+            // }
         }
         None => Err((StatusCode::UNAUTHORIZED).into_response()),
     }
 }
+

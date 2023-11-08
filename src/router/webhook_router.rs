@@ -1,7 +1,10 @@
+use std::str::FromStr;
+
 use chrono::{DateTime, Utc};
 use lemonsqueezy::orders::OrderResponse;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
+use uuid::Uuid;
 
 use crate::{
     db_model::{Operation, PaymentHistory},
@@ -69,7 +72,8 @@ pub async fn insert_to_db(payload: WebhookPayload, pool: &PoolPg) -> eyre::Resul
 
     if let Ok(extracted_data) = extracted {
         dbg!(&extracted_data);
-        if !extracted_data.test_mode && extracted_data.paid {
+        //fix: add  !extracted_data.test_mode
+        if extracted_data.paid {
             if let Some(data_custom) = &extracted_data.costum_data {
                 let (user_id, arr_custom) = extract_custom_data(data_custom.clone())?;
                 let history = PaymentHistory {
@@ -84,7 +88,7 @@ pub async fn insert_to_db(payload: WebhookPayload, pool: &PoolPg) -> eyre::Resul
                     total_paid: extracted_data.total_paid,
                     email: extracted_data.user_email.as_deref(),
                     key_id: arr_custom,
-                    user_id: &user_id,
+                    user_id: Uuid::from_str(&user_id)?,
                 };
 
                 let res = Operation::InsertPaymentHisory(history).execute(pool).await;

@@ -1,6 +1,6 @@
 use chrono::{DateTime, Utc};
 use serde::Serialize;
-use sqlx::{FromRow, Pool, Postgres};
+use sqlx::{types::Uuid, FromRow, Pool, Postgres};
 
 use crate::PoolPg;
 
@@ -24,7 +24,7 @@ pub struct PaymentHistory<'a> {
     pub total_paid: Option<i64>,
     pub email: Option<&'a str>,
     pub key_id: Vec<String>,
-    pub user_id: &'a str,
+    pub user_id: Uuid,
 }
 
 pub enum Operation<'a> {
@@ -148,3 +148,4 @@ impl<'a> Operation<'a> {
         Ok(())
     }
 }
+
