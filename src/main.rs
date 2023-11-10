@@ -26,7 +26,7 @@ use tower_http::{
 
 use crate::{
     middleware_fn::get_sig,
-    router::{checkout_url, get_all, get_by_id, webhook_route},
+    router::{checkout_url, get_all, get_by_id, mock_checkout, webhook_route},
 };
 
 type PoolPg = Pool<Postgres>;
@@ -73,6 +73,7 @@ async fn main() {
         .route("/get_all", get(get_all))
         .route("/checkout", post(checkout_url))
         .route("/data_id", post(get_by_id))
+        .route("/mock_checkout", post(mock_checkout))
         .with_state(app_state)
         .layer(cors);
 

@@ -22,6 +22,16 @@ use self::{
 pub struct CheckoutPayload {
     ids: Vec<String>,
     token: String,
+    description: String,
+}
+
+//mock
+pub async fn mock_checkout(
+    Json(payload): Json<CheckoutPayload>,
+) -> Result<String, (StatusCode, String)> {
+    dbg!(payload);
+
+    Ok("OK".to_string())
 }
 
 pub async fn get_all(
@@ -57,8 +67,15 @@ pub async fn checkout_url(
     let email_res = decode_jwt(&payload.token);
     match email_res {
         Ok((email, user_id)) => {
-            let checkout_res =
-                create_checkout(&ids, state.lemon, &state.pool, email, user_id).await;
+            let checkout_res = create_checkout(
+                &ids,
+                state.lemon,
+                &state.pool,
+                email,
+                user_id,
+                payload.description,
+            )
+            .await;
 
             match checkout_res {
                 Ok(res) => Ok(Json(res)),

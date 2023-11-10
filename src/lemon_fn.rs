@@ -14,6 +14,7 @@ pub async fn create_checkout(
     pool: &PoolPg,
     email: String,
     user_id: String,
+    description: String,
 ) -> eyre::Result<Response<CheckoutResponse>> {
     //code
 
@@ -35,12 +36,12 @@ pub async fn create_checkout(
 
             let options_product = CreateCheckoutProductOptions {
                 //need fix dynamic name
-                name: Some("Test for webhook x-signature".to_string()),
+                name: Some("Test for webhook frontend".to_string()),
                 //need fix dynamic description
-                description: Some("Diversity Bride Photo by Bridebook.com".to_string()),
+                description: Some(description),
                 media: Some(arr_img),
                 //need fix dynamic redirect url
-                redirect_url: Some("https://lemonsqueezy.com".to_string()),
+                redirect_url: Some("http://localhost:8080/purchase_history".to_string()),
                 receipt_button_text: None,
                 receipt_link_url: None,
                 receipt_thank_you_note: None,
@@ -102,3 +103,4 @@ pub async fn create_checkout(
         OperationResult::Inserted => Err(Report::msg("Something went wrong")),
     }
 }
+
