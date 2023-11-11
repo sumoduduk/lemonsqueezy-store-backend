@@ -870,7 +870,6 @@ dependencies = [
  "axum",
  "chrono",
  "derive",
- "dotenvy",
  "eyre",
  "hex",
  "hex-literal",

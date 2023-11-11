@@ -7,14 +7,11 @@ use axum::{
     response::{IntoResponse, Response},
 };
 
-use dotenvy::dotenv;
 use hex;
 use hmac::{Hmac, Mac};
 use sha2::Sha256;
 
 pub async fn get_sig(req: Request<BoxBody>, next: Next<BoxBody>) -> Result<Response, Response> {
-    dotenv().ok();
-
     let sig_val = env::var("SIG_VALUE").expect("No SIG_VALUE found");
 
     let (parts, body_parts) = req.into_parts();

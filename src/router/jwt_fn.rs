@@ -1,6 +1,5 @@
 use std::env;
 
-use dotenvy::dotenv;
 use jsonwebtoken::{decode, Algorithm, DecodingKey, Validation};
 use serde::{Deserialize, Serialize};
 
@@ -22,14 +21,12 @@ struct Claims {
 }
 
 pub fn decode_jwt(token: &str) -> eyre::Result<(String, String)> {
-    dotenv().ok();
-
     let secret = env::var("JWT_VALUE").expect("JWT_VALUE are not present");
     let secret = DecodingKey::from_secret(secret.as_ref());
 
     let mut validation = Validation::new(Algorithm::HS256);
     //for test
-    // validation.validate_exp = false;
+    validation.validate_exp = false;
     validation.set_audience(&["authenticated"]);
 
     let res = decode::<Claims>(token, &secret, &validation)?;
@@ -38,3 +35,4 @@ pub fn decode_jwt(token: &str) -> eyre::Result<(String, String)> {
 
     Ok((data.email, data.sub))
 }
+

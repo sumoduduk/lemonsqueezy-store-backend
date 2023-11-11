@@ -14,7 +14,6 @@ use axum::{
     Json, Router,
 };
 use chrono::Utc;
-use dotenvy::dotenv;
 use lemonsqueezy::LemonSqueezy;
 use serde::Serialize;
 use sqlx::{postgres::PgPoolOptions, Pool, Postgres};
@@ -39,8 +38,6 @@ pub struct AppState {
 
 #[tokio::main]
 async fn main() {
-    dotenv().ok();
-
     let cors = CorsLayer::new()
         .allow_methods(Any)
         .allow_headers(Any)
@@ -77,7 +74,7 @@ async fn main() {
         .with_state(app_state)
         .layer(cors);
 
-    let addr = SocketAddr::from(([127, 0, 0, 1], 8080));
+    let addr = SocketAddr::from(([0, 0, 0, 0], 8080));
     println!("Listening on {addr}");
 
     axum::Server::bind(&addr)
