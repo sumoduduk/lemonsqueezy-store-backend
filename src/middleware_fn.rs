@@ -8,6 +8,7 @@ use axum::{
 };
 
 use hex;
+
 use hmac::{Hmac, Mac};
 use sha2::Sha256;
 
@@ -66,4 +67,3 @@ pub async fn get_sig(req: Request<BoxBody>, next: Next<BoxBody>) -> Result<Respo
         None => Err((StatusCode::UNAUTHORIZED).into_response()),
     }
 }
-
