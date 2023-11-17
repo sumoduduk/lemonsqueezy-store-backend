@@ -1,3 +1,5 @@
+use std::env;
+
 use lemonsqueezy::types::{checkout::*, Data};
 use lemonsqueezy::utils::Response;
 use lemonsqueezy::{checkout::Checkout, LemonSqueezy};
@@ -14,6 +16,7 @@ pub async fn create_checkout(
     pool: &PoolPg,
     email: String,
     user_id: String,
+    name_product: String,
     description: String,
 ) -> eyre::Result<Response<CheckoutResponse>> {
     //code
@@ -28,6 +31,7 @@ pub async fn create_checkout(
 
     match res {
         OperationResult::Fetched(arr_data) => {
+            let redirect_uri = env::var("REDIRECT_URI").expect("REDIRECT_URI are not present");
             let arr_img = extract_image(&arr_data);
 
             let custom_data = make_custom_data(ids, &user_id)?;
@@ -36,12 +40,11 @@ pub async fn create_checkout(
 
             let options_product = CreateCheckoutProductOptions {
                 //need fix dynamic name
-                name: Some("Test for webhook frontend".to_string()),
+                name: Some(name_product),
                 //need fix dynamic description
                 description: Some(description),
                 media: Some(arr_img),
-                //need fix dynamic redirect url
-                redirect_url: Some("http://localhost:8080/purchase_history".to_string()),
+                redirect_url: Some(redirect_uri),
                 receipt_button_text: None,
                 receipt_link_url: None,
                 receipt_thank_you_note: None,
@@ -57,6 +60,8 @@ pub async fn create_checkout(
                 custom: Some(custom_data),
                 variant_quantities: None,
             };
+
+            //fix: id variant and store_id neer to be in enviroment variable
 
             let store_data: CreateCheckoutRelationShipData = CreateCheckoutRelationShipData {
                 r#type: "stores".to_string(),

@@ -22,6 +22,7 @@ use self::{
 pub struct CheckoutPayload {
     ids: Vec<String>,
     token: String,
+    name_product: String,
     description: String,
 }
 
@@ -73,6 +74,7 @@ pub async fn checkout_url(
                 &state.pool,
                 email,
                 user_id,
+                payload.name_product,
                 payload.description,
             )
             .await;
