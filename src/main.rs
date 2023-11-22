@@ -8,7 +8,7 @@ use std::{env, net::SocketAddr};
 
 use axum::{
     body,
-    http::{HeaderValue, Method, StatusCode},
+    http::{HeaderValue, Method},
     middleware,
     routing::{get, post},
     Json, Router,
@@ -25,7 +25,7 @@ use tower_http::{
 
 use crate::{
     middleware_fn::get_sig,
-    router::{checkout_url, get_all, get_by_id, mock_checkout, webhook_route},
+    router::{checkout_url, webhook_route},
 };
 
 type PoolPg = Pool<Postgres>;
@@ -74,10 +74,7 @@ async fn main() {
                 .layer(middleware::from_fn(get_sig)),
         )
         .route("/", get(home))
-        // .route("/get_all", get(get_all))
         .route("/checkout", post(checkout_url))
-        // .route("/data_id", post(get_by_id))
-        // .route("/mock_checkout", post(mock_checkout))
         .with_state(app_state)
         .layer(cors);
 
@@ -102,13 +99,6 @@ async fn home() -> Json<HomeStruct> {
         response: "OKE".to_string(),
         message: "Conection Successfull".to_string(),
     })
-}
-
-fn internal_error<E>(err: E) -> (StatusCode, String)
-where
-    E: std::error::Error,
-{
-    (StatusCode::INTERNAL_SERVER_ERROR, err.to_string())
 }
 
 fn one_hour_from_now() -> String {

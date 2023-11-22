@@ -21,12 +21,14 @@ struct Claims {
 }
 
 pub fn decode_jwt(token: &str) -> eyre::Result<(String, String)> {
+    println!("{}", token);
     let secret = env::var("JWT_VALUE").expect("JWT_VALUE are not present");
+    println!("{}", &secret);
     let secret = DecodingKey::from_secret(secret.as_ref());
 
     let mut validation = Validation::new(Algorithm::HS256);
-    //for test
-    validation.validate_exp = false;
+    // fix : for test
+    // validation.validate_exp = false;
     validation.set_audience(&["authenticated"]);
 
     let res = decode::<Claims>(token, &secret, &validation)?;

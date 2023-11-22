@@ -63,8 +63,6 @@ pub async fn create_checkout(
                 variant_quantities: None,
             };
 
-            //fix: id variant and store_id need to be in payload
-
             let store_data: CreateCheckoutRelationShipData = CreateCheckoutRelationShipData {
                 r#type: "stores".to_string(),
                 id: store_id,
@@ -87,7 +85,8 @@ pub async fn create_checkout(
                     product_options: Some(options_product),
                     checkout_data: Some(data_checkout),
                     expires_at: Some(time_expires),
-                    test_mode: Some(true),
+                    //fix change to false for production
+                    test_mode: Some(false),
                     checkout_options: None,
                 },
                 relationships: Some(relationships_chechkout),

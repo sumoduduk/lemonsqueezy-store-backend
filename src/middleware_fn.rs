@@ -7,8 +7,6 @@ use axum::{
     response::{IntoResponse, Response},
 };
 
-use hex;
-
 use hmac::{Hmac, Mac};
 use sha2::Sha256;
 

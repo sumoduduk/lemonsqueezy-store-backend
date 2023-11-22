@@ -6,12 +6,7 @@ use lemonsqueezy::{checkout::CheckoutResponse, utils::Response};
 use serde::Deserialize;
 use tokio::task;
 
-use crate::{
-    db_model::{DataDB, Operation, OperationResult},
-    internal_error,
-    lemon_fn::create_checkout,
-    AppState,
-};
+use crate::{lemon_fn::create_checkout, AppState};
 
 use self::{
     jwt_fn::decode_jwt,
@@ -25,39 +20,6 @@ pub struct CheckoutPayload {
     name_product: String,
     description: String,
     variant_id: String,
-}
-
-//mock
-pub async fn mock_checkout(
-    Json(payload): Json<CheckoutPayload>,
-) -> Result<String, (StatusCode, String)> {
-    dbg!(payload);
-
-    Ok("OK".to_string())
-}
-
-pub async fn get_all(
-    State(state): State<AppState>,
-) -> Result<Json<Vec<DataDB>>, (StatusCode, String)> {
-    let pool = state.pool;
-
-    let res = Operation::GetData
-        .execute(&pool)
-        .await
-        .map_err(internal_error);
-
-    match res {
-        Ok(response) => match response {
-            OperationResult::Fetched(data) => Ok(Json(data)),
-            OperationResult::Inserted => {
-                Err((StatusCode::NOT_FOUND, "Something went wrong".to_string()))
-            }
-        },
-        Err(err) => {
-            dbg!(err);
-            Err((StatusCode::NOT_FOUND, "Something went wrong".to_string()))
-        }
-    }
 }
 
 pub async fn checkout_url(
@@ -88,35 +50,9 @@ pub async fn checkout_url(
                 Err(_) => Err((StatusCode::NOT_FOUND, "Something went wrong".to_string())),
             }
         }
-        Err(_) => Err((StatusCode::UNAUTHORIZED, "Not Authorized".to_owned())),
-    }
-}
-
-pub async fn get_by_id(
-    State(state): State<AppState>,
-    Json(payload): Json<CheckoutPayload>,
-) -> Result<String, (StatusCode, String)> {
-    //code
-    let ids = payload.ids;
-    dbg!(&ids);
-    let res = Operation::GetDataById(ids)
-        .execute(&state.pool)
-        .await
-        .map_err(internal_error);
-
-    match res {
-        Ok(data) => match data {
-            OperationResult::Fetched(result) => match serde_json::to_string_pretty(&result) {
-                Ok(hasil) => Ok(hasil),
-                Err(_) => Err((StatusCode::NOT_FOUND, "error parse to pretty".to_string())),
-            },
-            OperationResult::Inserted => {
-                Err((StatusCode::NOT_FOUND, "Something went wrong".to_string()))
-            }
-        },
         Err(err) => {
-            dbg!(err);
-            Err((StatusCode::NOT_FOUND, "Something went wrong".to_string()))
+            println!(" error {}", err);
+            Err((StatusCode::UNAUTHORIZED, "Not Authorized".to_owned()))
         }
     }
 }

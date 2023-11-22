@@ -28,7 +28,6 @@ pub struct PaymentHistory<'a> {
 }
 
 pub enum Operation<'a> {
-    GetData,
     GetDataById(Vec<String>), // CreateHistory,
     InsertPaymentHisory(PaymentHistory<'a>),
 }
@@ -43,10 +42,6 @@ use OperationResult::*;
 impl<'a> Operation<'a> {
     pub async fn execute(&self, pool: &Pool<Postgres>) -> Result<OperationResult, sqlx::Error> {
         match self {
-            Self::GetData => {
-                let return_data = Self::fetch_all(pool).await?;
-                Ok(Fetched(return_data))
-            }
             Self::GetDataById(arr) => {
                 let return_data = Self::fetch_by_id(arr, pool).await?;
                 Ok(Fetched(return_data))
@@ -56,19 +51,6 @@ impl<'a> Operation<'a> {
                 Ok(Inserted)
             }
         }
-    }
-
-    async fn fetch_all(pool: &PoolPg) -> Result<Vec<DataDB>, sqlx::Error> {
-        let data_response: Vec<DataDB> = sqlx::query_as::<_, DataDB>(
-            "
-            SELECT key_id, thumb_image, title FROM bride_photo_thumbnails 
-            LIMIT 5
-            ",
-        )
-        .fetch_all(pool)
-        .await?;
-
-        Ok(data_response)
     }
 
     async fn fetch_by_id(ids: &[String], pool: &PoolPg) -> Result<Vec<DataDB>, sqlx::Error> {

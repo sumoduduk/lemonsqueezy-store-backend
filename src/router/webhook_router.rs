@@ -73,7 +73,7 @@ pub async fn insert_to_db(payload: WebhookPayload, pool: &PoolPg) -> eyre::Resul
     if let Ok(extracted_data) = extracted {
         dbg!(&extracted_data);
         //fix: add  !extracted_data.test_mode
-        if extracted_data.paid {
+        if !extracted_data.test_mode && extracted_data.paid {
             if let Some(data_custom) = &extracted_data.costum_data {
                 let (user_id, arr_custom) = extract_custom_data(data_custom.clone())?;
                 let history = PaymentHistory {
