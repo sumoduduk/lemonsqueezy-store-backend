@@ -18,6 +18,8 @@ pub async fn create_checkout(
     user_id: String,
     name_product: String,
     description: String,
+    variant_id: String,
+    store_id: String,
 ) -> eyre::Result<Response<CheckoutResponse>> {
     //code
 
@@ -32,6 +34,8 @@ pub async fn create_checkout(
     match res {
         OperationResult::Fetched(arr_data) => {
             let redirect_uri = env::var("REDIRECT_URI").expect("REDIRECT_URI are not present");
+            let redirect_uri = format!("{redirect_uri}/purchase_history");
+
             let arr_img = extract_image(&arr_data);
 
             let custom_data = make_custom_data(ids, &user_id)?;
@@ -39,9 +43,7 @@ pub async fn create_checkout(
             let total_prices = 400 * len;
 
             let options_product = CreateCheckoutProductOptions {
-                //need fix dynamic name
                 name: Some(name_product),
-                //need fix dynamic description
                 description: Some(description),
                 media: Some(arr_img),
                 redirect_url: Some(redirect_uri),
@@ -61,16 +63,16 @@ pub async fn create_checkout(
                 variant_quantities: None,
             };
 
-            //fix: id variant and store_id neer to be in enviroment variable
+            //fix: id variant and store_id need to be in payload
 
             let store_data: CreateCheckoutRelationShipData = CreateCheckoutRelationShipData {
                 r#type: "stores".to_string(),
-                id: "50443".to_string(),
+                id: store_id,
             };
 
             let variant_data: CreateCheckoutRelationShipData = CreateCheckoutRelationShipData {
                 r#type: "variants".to_string(),
-                id: "146143".to_string(),
+                id: variant_id,
             };
 
             let relationships_chechkout = CreateCheckoutRelationships {

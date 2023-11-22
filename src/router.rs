@@ -24,6 +24,7 @@ pub struct CheckoutPayload {
     token: String,
     name_product: String,
     description: String,
+    variant_id: String,
 }
 
 //mock
@@ -76,6 +77,8 @@ pub async fn checkout_url(
                 user_id,
                 payload.name_product,
                 payload.description,
+                payload.variant_id,
+                "50443".to_string(),
             )
             .await;
 

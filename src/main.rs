@@ -8,7 +8,7 @@ use std::{env, net::SocketAddr};
 
 use axum::{
     body,
-    http::StatusCode,
+    http::{HeaderValue, Method, StatusCode},
     middleware,
     routing::{get, post},
     Json, Router,
@@ -38,10 +38,17 @@ pub struct AppState {
 
 #[tokio::main]
 async fn main() {
+    let redirect_uri = env::var("REDIRECT_URI").expect("REDIRECT_URI are not present");
+
+    let remote = redirect_uri.parse::<HeaderValue>().unwrap();
+    let local = "http://localhost:4004".parse::<HeaderValue>().unwrap();
+
+    let allowed = [remote, local];
+
     let cors = CorsLayer::new()
-        .allow_methods(Any)
+        .allow_methods([Method::GET, Method::POST])
         .allow_headers(Any)
-        .allow_origin(Any);
+        .allow_origin(allowed);
 
     let database_uri = env::var("DATABASE_URL").expect("No database uri on environment");
     let pool: Pool<Postgres> = PgPoolOptions::new()
@@ -67,10 +74,10 @@ async fn main() {
                 .layer(middleware::from_fn(get_sig)),
         )
         .route("/", get(home))
-        .route("/get_all", get(get_all))
+        // .route("/get_all", get(get_all))
         .route("/checkout", post(checkout_url))
-        .route("/data_id", post(get_by_id))
-        .route("/mock_checkout", post(mock_checkout))
+        // .route("/data_id", post(get_by_id))
+        // .route("/mock_checkout", post(mock_checkout))
         .with_state(app_state)
         .layer(cors);
 
@@ -90,6 +97,7 @@ struct HomeStruct {
 }
 
 async fn home() -> Json<HomeStruct> {
+    println!("waking up");
     Json(HomeStruct {
         response: "OKE".to_string(),
         message: "Conection Successfull".to_string(),
@@ -109,3 +117,4 @@ fn one_hour_from_now() -> String {
         .expect("Valid date");
     tomorrow.format("%Y-%m-%dT%H:%M:%S%.3fZ").to_string()
 }
+
