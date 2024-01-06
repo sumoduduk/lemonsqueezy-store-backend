@@ -4,4 +4,6 @@
 **/*.hurl
 contoh.json
 /json_response
+.shuttle-storage
+Secrets*.toml
 
