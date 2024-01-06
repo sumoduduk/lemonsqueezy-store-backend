@@ -27,8 +27,10 @@ pub async fn checkout_url(
     Json(payload): Json<CheckoutPayload>,
 ) -> Result<Json<Response<CheckoutResponse>>, (StatusCode, String)> {
     let ids = payload.ids;
+    let jwt_val = state.jwt_value;
+    let redirect_uri = state.redirect_uri;
 
-    let email_res = decode_jwt(&payload.token);
+    let email_res = decode_jwt(&payload.token, &jwt_val);
     match email_res {
         Ok((email, user_id)) => {
             let checkout_res = create_checkout(
@@ -41,6 +43,7 @@ pub async fn checkout_url(
                 payload.description,
                 payload.variant_id,
                 "50443".to_string(),
+                &redirect_uri,
             )
             .await;
 
