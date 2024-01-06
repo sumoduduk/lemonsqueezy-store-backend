@@ -1,5 +1,3 @@
-use std::env;
-
 use lemonsqueezy::types::{checkout::*, Data};
 use lemonsqueezy::utils::Response;
 use lemonsqueezy::{checkout::Checkout, LemonSqueezy};
@@ -20,9 +18,8 @@ pub async fn create_checkout(
     description: String,
     variant_id: String,
     store_id: String,
+    redirect_uri: &str,
 ) -> eyre::Result<Response<CheckoutResponse>> {
-    //code
-
     let build_checkout = Checkout::build(lemon);
 
     let time_expires = one_hour_from_now();
@@ -33,7 +30,6 @@ pub async fn create_checkout(
 
     match res {
         OperationResult::Fetched(arr_data) => {
-            let redirect_uri = env::var("REDIRECT_URI").expect("REDIRECT_URI are not present");
             let redirect_uri = format!("{redirect_uri}/purchase_history");
 
             let arr_img = extract_image(&arr_data);
