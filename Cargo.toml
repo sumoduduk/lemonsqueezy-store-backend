@@ -18,6 +18,9 @@ lemonsqueezy = { git = 'https://github.com/sumoduduk/lemonsqueezy.rs.git', rev =
 serde = "1.0.190"
 serde_json = "1.0.108"
 sha2 = "0.10.8"
+shuttle-axum = "0.35.2"
+shuttle-runtime = "0.35.2"
+shuttle-secrets = "0.35.2"
 sqlx = { version = "0.7.2", features = ["postgres", "chrono", "runtime-tokio-rustls", "uuid"] }
 tokio = { version = "1.33.0", features = ["full"] }
 tower = "0.4.13"
