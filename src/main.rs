@@ -4,8 +4,6 @@ mod middleware_fn;
 mod router;
 mod utils;
 
-use std::{env, net::SocketAddr};
-
 use axum::{
     body,
     http::{HeaderValue, Method},
@@ -34,11 +32,18 @@ type PoolPg = Pool<Postgres>;
 pub struct AppState {
     pool: PoolPg,
     lemon: LemonSqueezy,
+    redirect_uri: String,
+    jwt_value: String,
+    sig_val: String,
 }
 
-#[tokio::main]
-async fn main() {
-    let redirect_uri = env::var("REDIRECT_URI").expect("REDIRECT_URI are not present");
+#[shuttle_runtime::main]
+async fn main(
+    #[shuttle_secrets::Secrets] secrets: shuttle_secrets::SecretStore,
+) -> shuttle_axum::ShuttleAxum {
+    let redirect_uri = secrets
+        .get("REDIRECT_URI")
+        .expect("REDIRECT_URI not present");
 
     let remote = redirect_uri.parse::<HeaderValue>().unwrap();
     let local = "http://localhost:4004".parse::<HeaderValue>().unwrap();
@@ -50,20 +55,28 @@ async fn main() {
         .allow_headers(Any)
         .allow_origin(allowed);
 
-    let database_uri = env::var("DATABASE_URL").expect("No database uri on environment");
+    let database_uri = secrets
+        .get("DATABASE_URL")
+        .expect("No database uri on environment");
+
     let pool: Pool<Postgres> = PgPoolOptions::new()
         .max_connections(10)
         .connect(&database_uri)
         .await
         .expect("Failed to create a pool postgress");
 
-    let lemon_api = env::var("LEMON_API").expect("LEMON_API not present");
+    let lemon_api = secrets.get("LEMON_API").expect("LEMON_API not present");
+    let jwt_value = secrets.get("JWT_VALUE").expect("JWT_VALUE are not present");
+    let sig_val = secrets.get("SIG_VALUE").expect("No SIG_VALUE found");
 
     let lemonsqueezy = lemonsqueezy::LemonSqueezy::new(lemon_api);
 
     let app_state = AppState {
         pool,
         lemon: lemonsqueezy,
+        redirect_uri,
+        jwt_value,
+        sig_val,
     };
 
     let app = Router::new()
@@ -71,20 +84,14 @@ async fn main() {
         .layer(
             ServiceBuilder::new()
                 .map_request_body(body::boxed)
-                .layer(middleware::from_fn(get_sig)),
+                .layer(middleware::from_fn_with_state(app_state.clone(), get_sig)),
         )
         .route("/", get(home))
         .route("/checkout", post(checkout_url))
         .with_state(app_state)
         .layer(cors);
 
-    let addr = SocketAddr::from(([0, 0, 0, 0], 8080));
-    println!("Listening on {addr}");
-
-    axum::Server::bind(&addr)
-        .serve(app.into_make_service())
-        .await
-        .unwrap();
+    Ok(app.into())
 }
 
 #[derive(Serialize)]
