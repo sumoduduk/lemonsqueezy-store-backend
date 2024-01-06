@@ -1,7 +1,6 @@
-use std::env;
-
 use axum::{
     body::{self, BoxBody, Full},
+    extract::State,
     http::{Request, StatusCode},
     middleware::Next,
     response::{IntoResponse, Response},
@@ -10,10 +9,15 @@ use axum::{
 use hmac::{Hmac, Mac};
 use sha2::Sha256;
 
-pub async fn get_sig(req: Request<BoxBody>, next: Next<BoxBody>) -> Result<Response, Response> {
-    let sig_val = env::var("SIG_VALUE").expect("No SIG_VALUE found");
+use crate::AppState;
 
+pub async fn get_sig(
+    State(app_state): State<AppState>,
+    req: Request<BoxBody>,
+    next: Next<BoxBody>,
+) -> Result<Response, Response> {
     let (parts, body_parts) = req.into_parts();
+    let sig_val = app_state.sig_val;
 
     let sig_header = parts.headers.get("X-Signature");
 
