@@ -65,7 +65,6 @@ pub async fn webhook_route(
     Json(payload): Json<WebhookPayload>,
 ) -> Result<(StatusCode, String), (StatusCode, String)> {
     let pool = state.pool;
-    dbg!(&payload);
 
     task::spawn(async move {
         let _ = insert_to_db(payload, &pool).await;
